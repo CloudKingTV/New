@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/gcal-sync",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/morning-briefing",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/eod-wrap",
+      "schedule": "0 22 * * *"
+    }
+  ]
+}
