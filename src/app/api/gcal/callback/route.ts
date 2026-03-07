@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     const { data: { user } } = await supabaseAuth.auth.getUser();
     if (!user) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/auth`);
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/`);
     }
 
     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/gcal/callback`;
