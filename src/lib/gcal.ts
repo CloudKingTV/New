@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_CALENDAR_API = "https://www.googleapis.com/calendar/v3";
 
-export function getGCalAuthUrl(redirectUri: string): string {
+export function getGCalAuthUrl(redirectUri: string, userId: string): string {
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,
     redirect_uri: redirectUri,
@@ -11,6 +11,7 @@ export function getGCalAuthUrl(redirectUri: string): string {
     scope: "https://www.googleapis.com/auth/calendar.readonly",
     access_type: "offline",
     prompt: "consent",
+    state: userId,
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 }
