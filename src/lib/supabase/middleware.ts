@@ -29,14 +29,13 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If not authenticated and trying to access app routes, redirect to auth
+  // If not authenticated and trying to access app routes, redirect to login
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith("/auth") &&
     request.nextUrl.pathname !== "/"
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = "/auth";
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
