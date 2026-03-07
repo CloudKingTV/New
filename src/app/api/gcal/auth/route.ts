@@ -1,16 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getGCalAuthUrl } from "@/lib/gcal";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-export async function GET() {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+export async function GET(request: NextRequest) {
+  const userId = request.nextUrl.searchParams.get("userId");
 
-  if (!user) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/`);
+  if (!userId) {
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/profile?error=not_authenticated`);
   }
 
   const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/gcal/callback`;
-  const authUrl = getGCalAuthUrl(redirectUri, user.id);
+  const authUrl = getGCalAuthUrl(redirectUri, userId);
   return NextResponse.redirect(authUrl);
 }
