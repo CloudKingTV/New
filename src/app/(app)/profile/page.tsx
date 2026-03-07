@@ -1,11 +1,9 @@
 "use client";
 
 import { useAuth } from "@/providers/AuthProvider";
-import { useSearchParams } from "next/navigation";
 
 export default function ProfilePage() {
-  const { appUser, supabaseUser, signOut } = useAuth();
-  const searchParams = useSearchParams();
+  const { appUser, signOut } = useAuth();
 
   return (
     <div className="relative z-10 px-4 py-6 space-y-6">
@@ -47,7 +45,7 @@ export default function ProfilePage() {
           <p className="mt-2 text-xs text-emerald">Connected (syncing every 15 min)</p>
         ) : (
           <a
-            href={`/api/gcal/auth?userId=${supabaseUser?.id || ""}`}
+            href={`/api/gcal/auth?userId=${appUser?.id || ""}`}
             className="mt-2 inline-block rounded-lg bg-blue/15 px-4 py-2 text-xs font-medium text-blue hover:bg-blue/25"
           >
             Connect Google Calendar
