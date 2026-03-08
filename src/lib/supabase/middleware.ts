@@ -30,12 +30,16 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // If not authenticated and trying to access app routes, redirect to login
-  if (
-    !user &&
-    request.nextUrl.pathname !== "/"
-  ) {
+  if (!user && request.nextUrl.pathname !== "/") {
     const url = request.nextUrl.clone();
     url.pathname = "/";
+    return NextResponse.redirect(url);
+  }
+
+  // If authenticated and on login page, redirect to app
+  if (user && request.nextUrl.pathname === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/today";
     return NextResponse.redirect(url);
   }
 
