@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServerClient } from "@supabase/ssr";
 import nacl from "tweetnacl";
 import bs58 from "bs58";
 
@@ -97,17 +97,37 @@ export async function POST(request: NextRequest) {
       refreshToken = sessionData.session!.refresh_token;
     }
 
-    // Set the session cookies server-side so they persist for subsequent requests
-    const serverSupabase = await createServerSupabaseClient();
-    await serverSupabase.auth.setSession({
+    // Build response and set auth cookies directly on it
+    const response = NextResponse.json({
       access_token: accessToken,
       refresh_token: refreshToken,
     });
 
-    return NextResponse.json({
+    // Create a Supabase server client that writes cookies to this response
+    const cookieSupabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options);
+            });
+          },
+        },
+      }
+    );
+
+    // This triggers setAll, writing auth cookies to the response
+    await cookieSupabase.auth.setSession({
       access_token: accessToken,
       refresh_token: refreshToken,
     });
+
+    return response;
   } catch (error) {
     console.error("Wallet verification error:", error);
     return NextResponse.json(
