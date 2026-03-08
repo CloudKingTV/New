@@ -29,6 +29,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // For API routes, just refresh the session cookies — don't redirect
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return supabaseResponse;
+  }
+
   // If not authenticated and trying to access app routes, redirect to login
   if (!user && request.nextUrl.pathname !== "/") {
     const url = request.nextUrl.clone();

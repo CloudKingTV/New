@@ -12,8 +12,9 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization)
      * - favicon.ico, manifest.json, icons
-     * - api routes (handled separately)
+     * - api/auth routes (called before authentication)
+     * Note: api/gcal routes ARE included so middleware refreshes the session
      */
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|icons|api).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|icons|api/auth).*)",
   ],
 };
