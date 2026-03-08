@@ -44,19 +44,12 @@ export default function ProfilePage() {
         {appUser?.gcal_refresh_token ? (
           <p className="mt-2 text-xs text-emerald">Connected (syncing every 15 min)</p>
         ) : (
-          <button
-            onClick={() => {
-              if (!appUser?.id) {
-                console.error("appUser is:", appUser);
-                alert("User not loaded yet. Check console.");
-                return;
-              }
-              window.location.href = `/api/gcal/auth?userId=${appUser.id}`;
-            }}
+          <a
+            href="/api/gcal/auth"
             className="mt-2 inline-block rounded-lg bg-blue/15 px-4 py-2 text-xs font-medium text-blue hover:bg-blue/25"
           >
             Connect Google Calendar
-          </button>
+          </a>
         )}
       </div>
 
