@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import nacl from "tweetnacl";
 import bs58 from "bs58";
 
@@ -59,42 +60,53 @@ export async function POST(request: NextRequest) {
     const password = derivePassword(walletAddress);
 
     // Try to sign in first (existing user)
-    const { data: signInData, error: signInError } =
+    const { data: signInData } =
       await supabase.auth.signInWithPassword({ email, password });
+
+    let accessToken: string;
+    let refreshToken: string;
 
     if (signInData?.session) {
-      return NextResponse.json({
-        access_token: signInData.session.access_token,
-        refresh_token: signInData.session.refresh_token,
+      accessToken = signInData.session.access_token;
+      refreshToken = signInData.session.refresh_token;
+    } else {
+      // User doesn't exist — create auth user with password
+      const { data: newUser, error: createError } =
+        await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { wallet_address: walletAddress },
+        });
+
+      if (createError) throw createError;
+
+      // Create user profile in our users table
+      await supabase.from("users").insert({
+        id: newUser.user.id,
+        wallet_address: walletAddress,
       });
+
+      // Sign in the newly created user
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.signInWithPassword({ email, password });
+
+      if (sessionError) throw sessionError;
+
+      accessToken = sessionData.session!.access_token;
+      refreshToken = sessionData.session!.refresh_token;
     }
 
-    // User doesn't exist — create auth user with password
-    const { data: newUser, error: createError } =
-      await supabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: { wallet_address: walletAddress },
-      });
-
-    if (createError) throw createError;
-
-    // Create user profile in our users table
-    await supabase.from("users").insert({
-      id: newUser.user.id,
-      wallet_address: walletAddress,
+    // Set the session cookies server-side so they persist for subsequent requests
+    const serverSupabase = await createServerSupabaseClient();
+    await serverSupabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
     });
 
-    // Sign in the newly created user
-    const { data: sessionData, error: sessionError } =
-      await supabase.auth.signInWithPassword({ email, password });
-
-    if (sessionError) throw sessionError;
-
     return NextResponse.json({
-      access_token: sessionData.session!.access_token,
-      refresh_token: sessionData.session!.refresh_token,
+      access_token: accessToken,
+      refresh_token: refreshToken,
     });
   } catch (error) {
     console.error("Wallet verification error:", error);
