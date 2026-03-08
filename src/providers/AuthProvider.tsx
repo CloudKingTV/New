@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log("[Auth] onAuthStateChange:", _event, "session:", !!session, "user:", session?.user?.id);
       setSession(session);
       setSupabaseUser(session?.user ?? null);
       if (session?.user) {
@@ -65,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("[Auth] getSession:", "session:", !!session, "user:", session?.user?.id);
       setSession(session);
       setSupabaseUser(session?.user ?? null);
       if (session?.user) {
@@ -105,7 +107,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const { access_token, refresh_token } = await response.json();
-    await supabase.auth.setSession({ access_token, refresh_token });
+    console.log("[Auth] setSession called, has tokens:", !!access_token, !!refresh_token);
+    const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
+    console.log("[Auth] setSession result:", "session:", !!data.session, "error:", error?.message, "user:", data.session?.user?.id);
   }, [publicKey, signMessage, supabase]);
 
   const signInWithEmail = useCallback(
